@@ -57,62 +57,79 @@ Skills are non-blocking by default. They surface patterns and offer options — 
 
 ## Installation
 
-### Claude Code
-
-Copy the skills to your Claude Code skills directory:
+### Quick install (recommended)
 
 ```bash
-# From this repo
-cp -r skills/* ~/.claude/skills/
+git clone https://github.com/jpoindexter/neurodivergent-agent-skills.git
+cd neurodivergent-agent-skills
+bash install.sh
 ```
 
-Or install individual skills:
-```bash
-cp -r skills/nd-research-gate ~/.claude/skills/
+The install script copies all 14 skills to `~/.claude/skills/` (Claude Code) and appends behavioral instructions to `~/.codex/AGENTS.md` (Codex).
+
+---
+
+### Making skills always-on in Claude Code
+
+> **Important:** Installing the skill files alone is not enough. By default, Claude Code invokes skills on demand — it has to judge when one applies. To make every skill fire automatically without being asked, you need to add them to your `~/.claude/CLAUDE.md`.
+
+Add this section to `~/.claude/CLAUDE.md`:
+
+```markdown
+## ND Skills — always on
+
+Apply these behavioral patterns in every session. Do not wait to be asked.
+
+- **nd-research-gate** — After 8 consecutive turns of reading/analysis/research without a file write, shell command, or commit: surface the count, restate the original goal, ask one question: "Want to pick one finding to build now?"
+- **nd-complexity-gate** — Before any multi-file, schema-change, migration, or ambiguous-spec request: emit one line suggesting `/planmode` if plan mode is not already active. Never block.
+- **nd-choicereduce** — When presenting options or a backlog: show only the top 3 ranked by effort (smallest first). Note the hidden count. Never show the full list unprompted.
+- **nd-taskboundary** — When the incoming message shares less than 15% keyword overlap with the active goal and is 4+ words: emit one line naming the topic shift. Offer `/boundary` to mark it.
+- **nd-working-memory** — Re-state the active task context (goal + current step + remaining steps) every 5 turns in sessions longer than 10 turns. After context compression: always re-anchor before continuing.
+- **nd-inhibit** — Before each tool call: verify it serves the current goal. After 3 adjacent off-goal calls: name the drift in one line.
+- **nd-setshift** — When the same error or approach appears 3+ times without progress: name the stuck loop and propose a genuinely different strategy. Check ERRORS.md at task start for similar prior failures.
+- **nd-selfmonitor** — Before overwriting files, destructive shell commands, or commits: emit one sentence confirming the action matches the current goal.
+- **nd-task-initiation** — When a user stalls, says "I don't know where to start", or goes quiet after a new task: prescribe the single smallest concrete first action (specific file, exact command — not guidance).
+- **nd-hyperfocus-guard** — After 10+ consecutive turns deep in one area without referencing the original goal: name the pattern once and offer a structured exit.
+- **nd-time-blindness** — For any effort estimate: give best/realistic/worst range with named hidden costs. Never give a single-point estimate for work with unknowns.
+- **nd-closuregate** — Before engaging a substantially new task thread: check for unfinished items from the current session. If any are >50% done, surface one question before switching.
+- **nd-velocity-check** — When a session starts with a long backlog or the user asks "what should I work on?": note the capture:ship ratio if it's above 5:1.
+- **nd-sensory-load** — Default to compressed output: one idea per paragraph, actions in bullets, bold the one most important thing. Expand only when explicitly learning something new.
 ```
 
-Once installed, Claude Code can invoke them via the `Skill` tool:
-```
-Use the nd-research-gate skill to check in on this session.
-```
+This tells Claude to apply all 14 patterns as standing behavior — not wait to be asked.
+
+---
 
 ### Codex CLI
 
-Add the skills as instructions in your Codex agent file:
+The install script handles this automatically. It appends behavioral instructions to `~/.codex/AGENTS.md`. To do it manually:
 
 ```bash
-# Add skill summaries to ~/.codex/AGENTS.md
 cat >> ~/.codex/AGENTS.md << 'EOF'
 
-## ND Skills — active behavioral patterns
+## ND Skills — always on
 
-When working with me, apply these patterns from the neurodivergent-agent-skills pack:
+Apply these behavioral patterns in every session. Do not wait to be asked.
 
 - After 8 research turns without concrete output, surface the nd-research-gate check-in
 - Before complex multi-file requests, suggest planning (nd-complexity-gate)
-- When presenting options > 3, show only top 3 ranked by effort (nd-choicereduce)
+- When presenting more than 3 options, show only top 3 ranked by effort (nd-choicereduce)
 - Before destructive operations, emit a one-sentence intent check (nd-selfmonitor)
-- When I seem stuck after 3 similar attempts, propose a different approach (nd-setshift)
-- When tasks shift topics mid-session, name the transition (nd-taskboundary)
+- After 3 similar failed attempts, propose a genuinely different approach (nd-setshift)
+- When topics shift mid-session, name the transition and offer /boundary (nd-taskboundary)
+- Re-state task context every 5 turns in long sessions (nd-working-memory)
+- When stuck or blank on where to start, prescribe the smallest concrete first step (nd-task-initiation)
+- For all estimates: give best/realistic/worst range with named hidden costs (nd-time-blindness)
+- Default to compressed output: bullets over prose, bold the one key thing (nd-sensory-load)
 EOF
 ```
 
-### Auto-activate in Claude Code
+---
 
-To have these skills trigger automatically, reference them in your `~/.claude/CLAUDE.md`:
+### Install individual skills only
 
-```markdown
-## ND Skills — active behavioral patterns
-
-When working with me, apply these patterns throughout every session:
-- `nd-research-gate`: After 8 consecutive research/analysis turns, check in
-- `nd-complexity-gate`: Suggest planning for multi-file or ambiguous requests
-- `nd-choicereduce`: Show only top 3 when presenting options
-- `nd-selfmonitor`: One-sentence intent check before destructive operations
-- `nd-setshift`: After 3 similar failed attempts, pivot the approach
-- `nd-taskboundary`: Name topic shifts explicitly
-- `nd-working-memory`: Re-state task context after every 5 turns in long sessions
-- `nd-task-initiation`: When I stall, prescribe the smallest concrete first step
+```bash
+cp -r skills/nd-research-gate ~/.claude/skills/
 ```
 
 ---
